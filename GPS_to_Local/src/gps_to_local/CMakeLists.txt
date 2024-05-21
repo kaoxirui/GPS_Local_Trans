@@ -9,14 +9,14 @@ project(gps_to_local)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
-  message_generation
   roscpp
   rospy
   sensor_msgs
+  message_generation
   std_msgs
   tf2
 )
-
+find_package(GeographicLib REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -56,6 +56,12 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message1.msg
 #   Message2.msg
 # )
+add_message_files(
+  FILES
+  waypoints.msg
+  fcc.msg
+  vectormessage.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -74,8 +80,14 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs#   std_msgs
+#   geometry_msgs#   sensor_msgs
 # )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+  sensor_msgs
+  )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -109,7 +121,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES gps_to_local
-#  CATKIN_DEPENDS geometry_msgs message_generation roscpp rospy sensor_msgs std_msgs tf2
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs message_runtime std_msgs
 #  DEPENDS system_lib
 )
 
@@ -122,6 +134,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${GEOGRAPHIC_LIB_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -137,7 +150,11 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/gps_to_local_node.cpp)
+add_executable(gps_to_local src/gps_to_local.cpp)
+add_executable(local_to_gps src/local_to_gps.cpp)
+add_executable(msg_pub src/msg_pub.cpp)
+add_executable(msg_pub_local src/msg_pub_local.cpp)
+add_executable(hover_ego src/hover_ego.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,10 +167,27 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(gps_to_local
+  ${catkin_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
+)
+target_link_libraries(local_to_gps
+  ${catkin_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
+)
+target_link_libraries(msg_pub
+  ${catkin_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
+)
 
+target_link_libraries(msg_pub_local
+  ${catkin_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
+)
+
+target_link_libraries(hover_ego
+  ${catkin_LIBRARIES}
+)
 #############
 ## Install ##
 #############

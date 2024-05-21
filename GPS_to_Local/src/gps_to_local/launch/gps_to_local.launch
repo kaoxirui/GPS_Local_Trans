@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="gps_to_local" type="gps_to_local" name="gps_to_local" output="screen"/>
+    <node pkg="gps_to_local" type="msg_pub" name="msg_pub" output="screen"/>
+    <node pkg="gps_to_local" type="local_to_gps" name="local_to_gpss" output="screen"/>
+</launch>

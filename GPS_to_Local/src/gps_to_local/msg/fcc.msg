@@ -9,9 +9,9 @@ std_msgs/Float32 localization_accuracy_factor
 std_msgs/Float32 local_x
 std_msgs/Float32 local_y
 std_msgs/Float32 local_z
-int64 latitude
-int64 longitude
-int64 altitude
+float64 latitude
+float64 longitude
+float64 altitude
 int32 roll
 int32 pitch
 uint32 orientation_uav
