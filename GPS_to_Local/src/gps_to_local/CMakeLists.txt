@@ -119,8 +119,8 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES gps_to_local
+  INCLUDE_DIRS include
+  LIBRARIES gps_to_local
   CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs message_runtime std_msgs
 #  DEPENDS system_lib
 )
@@ -132,29 +132,29 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
-  ${GEOGRAPHIC_LIB_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/gps_to_local.cpp
-# )
+add_library(gps_to_local
+    include/gps_to_local/gps_to_local.hpp 
+  src/gps_to_local.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(gps_to_local ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(gps_to_local src/gps_to_local.cpp)
 add_executable(local_to_gps src/local_to_gps.cpp)
 add_executable(msg_pub src/msg_pub.cpp)
 add_executable(msg_pub_local src/msg_pub_local.cpp)
 add_executable(hover_ego src/hover_ego.cpp)
+add_executable(gps_to_local_node src/gps_to_local_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -164,28 +164,32 @@ add_executable(hover_ego src/hover_ego.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(gps_to_local ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(gps_to_local_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+# target_link_libraries(gps_to_local
+#   ${catkin_LIBRARIES}
+# )
 target_link_libraries(gps_to_local
   ${catkin_LIBRARIES}
-  ${GeographicLib_LIBRARIES}
 )
 target_link_libraries(local_to_gps
   ${catkin_LIBRARIES}
-  ${GeographicLib_LIBRARIES}
 )
 target_link_libraries(msg_pub
   ${catkin_LIBRARIES}
-  ${GeographicLib_LIBRARIES}
 )
 
 target_link_libraries(msg_pub_local
   ${catkin_LIBRARIES}
-  ${GeographicLib_LIBRARIES}
 )
 
 target_link_libraries(hover_ego
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(gps_to_local_node
+  gps_to_local
   ${catkin_LIBRARIES}
 )
 #############

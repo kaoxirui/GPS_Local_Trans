@@ -1,39 +1,29 @@
-#include<iostream>
-#include<ros/ros.h>
-#include<GeographicLib/Geocentric.hpp>
-#include<GeographicLib/LocalCartesian.hpp>
-#include"gps_to_local/waypoints.h"
-#include"gps_to_local/fcc.h"
-#include"gps_to_local/vectormessage.h"
-#include<cmath>
-#include<vector>
-#include<fstream>
-#include<string>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <nav_msgs/Odometry.h>
+#include"gps_to_local/gps_to_local.hpp"
 
+Gps_Local_Trans::Gps_Local_Trans():nh("~"),flag(false){
+    /*
+        this 表示当前 Gps_Local_Trans 类的实例。它用于将 Originpoint_CallBack 成员函数作为回调函数传递给 nh.subscribe 方法。
 
-bool flag=false;
-bool init=false;
-gps_to_local::fcc origin_points;
-gps_to_local::vectormessage waypoints_data;
-std::vector<geometry_msgs::PoseStamped>wayponits;
-int count=0;//航点个数
-ros::Publisher pub_ego;
+    在这种情况下,this 指针是必需的,因为 Originpoint_CallBack 是一个非静态成员函数,需要访问类的非静态成员变量。传递 this 指针可以让 Originpoint_CallBack 函数访问到当前 Gps_Local_Trans 类实例的成员变量。
 
-double toRadians(double degrees){
-    return degrees*M_PI/180.0;
+    如果 Originpoint_CallBack 是一个静态成员函数,就不需要传递 this 指针了,因为静态成员函数不需要 this 指针就可以访问类的成员变量和成员函数。
+    */
+    //订阅航点经纬高信息
+    sub_1=nh.subscribe<gps_to_local::waypoints>("/waypoints_messages",10,&Gps_Local_Trans::gps_to_localCallBack,this);
+        
+    //订阅起始点经纬高
+    sub_2=nh.subscribe<gps_to_local::fcc>("/fcc_messages",10,&Gps_Local_Trans::Originpoint_CallBack,this);
+    //发布航点信息
+    pub_ego=nh.advertise<gps_to_local::vectormessage>("/publish_points",10);
 }
 
-
-void NEUtoXYZ(double north_,double east_,double up_,
+void Gps_Local_Trans::NEUtoXYZ(double north_,double east_,double up_,
                 double roll,double pitch,double yaw,
                 double& x,double& y,double& z){
     // 将角度转为弧度
-    double rollRad = toRadians(roll);
-    double pitchRad = toRadians(pitch);
-    double yawRad = toRadians(yaw);
+    double rollRad = roll;
+    double pitchRad = pitch;
+    double yawRad = yaw;
     tf2::Matrix3x3 R_ENU_to_local;
     R_ENU_to_local.setEulerZYX(yawRad-3.14159265359/2,pitchRad,rollRad);
     x = R_ENU_to_local[0][0] * east_ + 
@@ -45,25 +35,11 @@ void NEUtoXYZ(double north_,double east_,double up_,
     z = R_ENU_to_local[2][0] * east_ +
           R_ENU_to_local[2][1] * north_ +
           R_ENU_to_local[2][2] * up_;
-    // // 计算旋转矩阵元素
-    // double cosRoll = cos(rollRad);
-    // double sinRoll = sin(rollRad);
-    // double cosPitch = cos(pitchRad);
-    // double sinPitch = sin(pitchRad);
-    // double cosYaw = cos(yawRad);
-    // double sinYaw = sin(yawRad);
-    // // 应用旋转矩阵
-    // x = east_ * cosYaw * cosPitch + north_ * (cosYaw * sinPitch * sinRoll - sinYaw * cosRoll) + up_ * (cosYaw * sinPitch * cosRoll + sinYaw * sinRoll);
-    // y = east_ * sinYaw * cosPitch + north_ * (sinYaw * sinPitch * sinRoll + cosYaw * cosRoll) + up_ * (sinYaw * sinPitch * cosRoll - cosYaw * sinRoll);
-    // z = -east_ * sinPitch + north_ * cosPitch * sinRoll + up_ * cosPitch * cosRoll;
-    // std::cout<<x<<std::endl;
-    // std::cout<<y<<std::endl;
-    // std::cout<<z<<std::endl;
     return;
 }
 
 
-void Originpoint_CallBack(const gps_to_local::fcc::ConstPtr& originmsg){
+void Gps_Local_Trans::Originpoint_CallBack(const gps_to_local::fcc::ConstPtr& originmsg){
     if(!flag){
         origin_points=*originmsg;
         ROS_INFO("Originpoint_CallBack reveived message!!");
@@ -73,10 +49,7 @@ void Originpoint_CallBack(const gps_to_local::fcc::ConstPtr& originmsg){
     //return;
 } 
   
-
-
-
-void WGS_TO_ENU(double lat, double lon, double h, double lat0, double lon0, double h0, double &enu_x,double &enu_y,double &enu_z)
+void Gps_Local_Trans::WGS_TO_ENU(double lat, double lon, double h, double lat0, double lon0, double h0, double &enu_x,double &enu_y,double &enu_z)
 {
 	double a, b, f, e_sq, pi;
     pi = 3.14159265359;
@@ -126,40 +99,11 @@ void WGS_TO_ENU(double lat, double lon, double h, double lat0, double lon0, doub
 	enu_z = cos_lambda0 * cos_phi0 * xd + cos_lambda0 * sin_phi0 * yd + sin_lambda0 * zd;
     return;
 }
-// //判断是不是到位置了
-// bool check_target(geometry_msgs::PoseStamped set_pose, geometry_msgs::PoseStamped current_pose_){
-//     double dx = set_pose.pose.position.x - current_pose_.pose.position.x;
-//     double dy = set_pose.pose.position.y - current_pose_.pose.position.y;
-//     double dz = set_pose.pose.position.z - current_pose_.pose.position.z;
 
-//     if (dx * dx + dy * dy + dz * dz < 1)
-//         return true;
-//     else
-//         return false;
-// }
-
-
-// //订阅当前的里程计中的位置信息
-// geometry_msgs::PoseStamped current_pose;
-// void odom_call_back(const nav_msgs::Odometry odomMsg){
-//     current_pose.pose.position.x=odomMsg.pose.pose.position.x;
-//     current_pose.pose.position.y=odomMsg.pose.pose.position.y;
-//     current_pose.pose.position.z=odomMsg.pose.pose.position.z;
-// }
-
-
-//GeographicLib::LocalCartesian geoConverter;
-void gps_to_localCallBack(const gps_to_local::waypoints::ConstPtr& msg){
+void Gps_Local_Trans::gps_to_localCallBack(const gps_to_local::waypoints::ConstPtr& msg){
     gps_to_local::waypoints current_point=*msg;
     //转为东北天
     double east,north,up;
-    
-    // if(flag&&!init){
-    //     geoConverter.Reset(origin_points.latitude,origin_points.longitude,origin_points.altitude);
-    //     init=true;
-    // }
-    //     geoConverter.Forward(current_point.latitude,current_point.longitude,current_point.altitude,east,north,up);
-    //void WGS_TO_ENU(double lat, double lon, double h, double lat0, double lon0, double h0, double &enu_x,double &enu_y,double &enu_z);
 
     WGS_TO_ENU(current_point.latitude,current_point.longitude,current_point.altitude,
                  origin_points.latitude,origin_points.longitude,origin_points.altitude,east,north,up);
@@ -196,26 +140,4 @@ void gps_to_localCallBack(const gps_to_local::waypoints::ConstPtr& msg){
         ROS_ERROR("Output file is not open, unable to write coordinates.");
     }
     outfile.close();
-}
-int main(int argc,char** argv){
-    ros::init(argc,argv,"gps_to_local");
-    ros::NodeHandle nh;
-    
-    //订阅起始点经纬高
-    ros::Subscriber sub_2=nh.subscribe<gps_to_local::fcc>("/fcc_messages",10,Originpoint_CallBack);
-    //订阅航点经纬高信息
-    ros::Subscriber sub_1=nh.subscribe<gps_to_local::waypoints>("/waypoints_messages",10,gps_to_localCallBack);
-    //订阅里程计信息
-    //ros::Subscriber sub_odom=nh.subscribe<nav_msgs::Odometry>("/Odometry",10,odom_call_back);
-    //发布航点信息
-    pub_ego=nh.advertise<gps_to_local::vectormessage>("/publish_points",10);
-    gps_to_local::fccConstPtr msg=ros::topic::waitForMessage<gps_to_local::fcc>("/fcc_messages",ros::Duration(5.0));
-    if(msg){
-        Originpoint_CallBack(msg);
-    }else{
-        ROS_INFO("TIME OUT");
-    }
-    ros::spin();
-
-    return 0;
 }
