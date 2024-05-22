@@ -1,6 +1,8 @@
 # GPS_to_Local
 * 把发过来的gps的经纬高坐标转换到局部坐标系（或局部坐标系转gps）。其中局部坐标系和东北天的姿态角比较特殊，yaw为x轴与北向的夹角（0-360，右为正），pitch向上为正，roll右滚为正
 
+* 注意坐标基之间的转换和坐标之间的转换是反的
+
 * msg_pub和msg_pub_local为测试用
 
 * hover_ego:把转到local系的坐标发给ego planner
