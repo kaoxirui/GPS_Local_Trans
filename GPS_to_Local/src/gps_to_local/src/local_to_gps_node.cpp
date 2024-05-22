@@ -1,15 +1,13 @@
-#include "gps_to_local/gps_to_local.hpp"
-//按照源文件方式配置，这个可执行文件依赖另一个cpp文件
+#include "gps_to_local/local_to_gps.hpp"
+
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "gps_to_local");
+  ros::init(argc, argv, "local_to_gps");
   ros::NodeHandle nh;
-
-  Gps_Local_Trans Gps_Trans;
-
+  Local_To_Gps_Trans Local_Trans;
   gps_to_local::fccConstPtr msg = ros::topic::waitForMessage<gps_to_local::fcc>(
       "/fcc_messages", ros::Duration(5.0));
   if (msg) {
-    Gps_Trans.OriginPointCallBack(msg);
+    Local_Trans.OriginCallBack(msg);
   } else {
     ROS_INFO("TIME OUT");
   }

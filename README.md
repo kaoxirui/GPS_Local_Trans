@@ -16,3 +16,8 @@
 http://www.autolabor.com.cn/book/ROSTutorials/di-3-zhang-ros-tong-xin-ji-zhi-jin-jie/32-roszhong-de-tou-wen-jian-yu-yuan-wen-jian/322-zi-ding-yi-yuan-wen-jian-diao-yong.html
 
 * 注意回调函数传入this指针，表示类的实例，这样才能访问成员变量
+
+---
+2024-5-22
+
+对代码格式和命名进行了规范化，把local to gps的代码也进行了封装

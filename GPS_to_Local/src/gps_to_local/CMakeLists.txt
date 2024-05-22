@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf2
 )
-find_package(GeographicLib REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -142,6 +141,12 @@ add_library(gps_to_local
   src/gps_to_local.cpp
 )
 
+add_library(local_to_gps
+    include/gps_to_local/local_to_gps.hpp 
+  src/local_to_gps.cpp
+)
+
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -150,11 +155,13 @@ add_library(gps_to_local
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(local_to_gps src/local_to_gps.cpp)
+#add_executable(local_to_gps src/local_to_gps.cpp)
+#add_executable(gps_to_local src/gps_to_local.cpp)
 add_executable(msg_pub src/msg_pub.cpp)
 add_executable(msg_pub_local src/msg_pub_local.cpp)
 add_executable(hover_ego src/hover_ego.cpp)
 add_executable(gps_to_local_node src/gps_to_local_node.cpp)
+add_executable(local_to_gps_node src/local_to_gps_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -166,7 +173,8 @@ add_executable(gps_to_local_node src/gps_to_local_node.cpp)
 ## same as for the library above
  add_dependencies(gps_to_local ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(gps_to_local_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ add_dependencies(local_to_gps ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(local_to_gps_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(gps_to_local
 #   ${catkin_LIBRARIES}
@@ -190,6 +198,11 @@ target_link_libraries(hover_ego
 )
 target_link_libraries(gps_to_local_node
   gps_to_local
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(local_to_gps_node
+  local_to_gps
   ${catkin_LIBRARIES}
 )
 #############
