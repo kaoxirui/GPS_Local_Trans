@@ -30,10 +30,13 @@ void Gps_Local_Trans::EnuToXyz(double north_, double east_, double up_, double r
     double pitchRad = pitch;
     double yawRad = yaw;
     tf2::Matrix3x3 R_ENU_to_local;
-    R_ENU_to_local.setEulerZYX(yawRad - 3.14159265359 / 2, pitchRad, rollRad);
-    x = R_ENU_to_local[0][0] * east_ + R_ENU_to_local[0][1] * north_ + R_ENU_to_local[0][2] * up_;
-    y = R_ENU_to_local[1][0] * east_ + R_ENU_to_local[1][1] * north_ + R_ENU_to_local[1][2] * up_;
-    z = R_ENU_to_local[2][0] * east_ + R_ENU_to_local[2][1] * north_ + R_ENU_to_local[2][2] * up_;
+    //R_ENU_to_local.setEulerZYX(yawRad - 3.14159265359 / 2, pitchRad, -rollRad);
+    R_ENU_to_local.setEulerZYX(-yaw + 3.14159265359 / 2, -pitch, roll);
+    tf2::Matrix3x3 R_final = R_ENU_to_local.inverse();
+    x = R_final[0][0] * east_ + R_final[0][1] * north_ + R_final[0][2] * up_;
+    y = R_final[1][0] * east_ + R_final[1][1] * north_ + R_final[1][2] * up_;
+    z = R_final[2][0] * east_ + R_final[2][1] * north_ + R_final[2][2] * up_;
+
     return;
 }
 

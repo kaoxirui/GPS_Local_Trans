@@ -136,8 +136,11 @@ void Local_To_Gps_Trans::LocalToGpsCallBack(const geometry_msgs::PoseStamped::Co
         pitch = pitch * 180 / M_PI;
         roll = roll * 180 / M_PI;
 
-        R_local_to_ENU.setEulerZYX(-yaw + 3.14159265359 / 2, -pitch, -roll);
-        tf2::Matrix3x3 R_final = R_local_to_ENU;
+        tf2::Matrix3x3 R_local_to_ENU;
+
+        R_local_to_ENU.setEulerZYX(yaw - 3.14159265359 / 2, pitch, -roll);
+
+        tf2::Matrix3x3 R_final = R_local_to_ENU.inverse();
         double ans_x, ans_y, ans_z;
         ans_x = R_final[0][0] * local_msg.pose.position.x
                 + R_final[0][1] * local_msg.pose.position.y

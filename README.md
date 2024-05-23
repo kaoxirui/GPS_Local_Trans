@@ -23,3 +23,12 @@ http://www.autolabor.com.cn/book/ROSTutorials/di-3-zhang-ros-tong-xin-ji-zhi-jin
 2024-5-22
 
 对代码格式和命名进行了规范化，把local to gps的代码也进行了封装
+
+---
+2024-5-22
+
+坐标转换问题
+
+例如东北天通过ZYX转local，计算出其旋转矩阵。而local系到东北天上点的坐标转换则乘以旋转矩阵的逆矩阵
+
+最开始用乘以local转东北天的坐标系，是错的
